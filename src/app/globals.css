@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* clip 브랜딩: 먹색 #212121 · 라임 #BFD74D · 종이색 #F8F8F8 */
+@theme {
+  --color-ink: #212121;
+  --color-ink-soft: #4b4b4b;
+  --color-ink-mute: #8a8a8a;
+  --color-lime: #bfd74d;
+  --color-lime-deep: #8fae1b;
+  --color-paper: #f8f8f8;
+  --color-line: #e4e4e4;
+
+  --color-ok: #3f7d20;
+  --color-ok-bg: #eef6d6;
+  --color-warn: #b45309;
+  --color-warn-bg: #fdf0d5;
+  --color-bad: #c2262e;
+  --color-bad-bg: #fde3e4;
+
+  --font-sans:
+    "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+    "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+html,
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 숫자 폭을 고정해 타임라인·대조표가 흔들리지 않게 */
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+@keyframes clip-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+.clip-pulse {
+  animation: clip-pulse 1.2s ease-in-out infinite;
+}
