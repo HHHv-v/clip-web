@@ -21,17 +21,17 @@ function Row({
   const limitLeft = (LIMIT_HOURS / scaleMax) * 100;
   return (
     <div className="grid grid-cols-[6.5rem_1fr_auto] items-center gap-3">
-      <div className="text-sm font-medium whitespace-nowrap">{label}</div>
-      <div className="relative h-7">
-        <div className="absolute inset-y-2 left-0 right-0 rounded-full bg-line" />
+      <div className="text-sm font-semibold whitespace-nowrap">{label}</div>
+      <div className="relative h-8">
+        <div className="absolute inset-y-2.5 left-0 right-0 rounded-full bg-line" />
         {hours !== undefined ? (
           <>
             <div
-              className={["absolute inset-y-2 left-0 rounded-full", over ? "bg-bad" : "bg-lime-deep"].join(" ")}
+              className={["absolute inset-y-2.5 left-0 rounded-full", over ? "bg-bad" : "bg-lime"].join(" ")}
               style={{ width: `${width}%` }}
             />
-            <div className="absolute top-0 bottom-0 w-px bg-ink" style={{ left: `${limitLeft}%` }} aria-hidden />
-            <div className="absolute -top-0.5 -translate-x-1/2 text-[10px] font-medium text-ink" style={{ left: `${limitLeft}%` }}>
+            <div className="absolute top-0 bottom-0 w-0.5 bg-ink" style={{ left: `${limitLeft}%` }} aria-hidden />
+            <div className="absolute -top-1 -translate-x-1/2 rounded bg-ink px-1 text-[10px] font-bold text-paper" style={{ left: `${limitLeft}%` }}>
               72h
             </div>
           </>
@@ -39,19 +39,19 @@ function Row({
           <div
             className={[
               "absolute inset-y-0 left-3 flex items-center text-xs whitespace-nowrap",
-              missingTone === "bad" ? "text-bad font-medium" : "text-ink-mute",
+              missingTone === "bad" ? "text-bad font-semibold" : "text-ink-mute",
             ].join(" ")}
           >
             {missingText}
           </div>
         )}
       </div>
-      <div className="text-right text-sm tnum">
+      <div className="min-w-[6.5rem] text-right tnum">
         {hours !== undefined ? (
           <>
-            <span className={over ? "font-semibold text-bad" : "font-semibold text-ok"}>{formatHours(hours)}</span>
-            <span className="ml-1 text-ink-mute">{over ? "초과" : "이내"}</span>
-            <div className="text-xs text-ink-mute">{shortDateTime(at)}</div>
+            <span className={["text-xl font-black leading-none", over ? "text-bad" : "text-ink"].join(" ")}>{formatHours(hours)}</span>
+            <span className={["ml-1 text-xs font-semibold", over ? "text-bad" : "text-ok"].join(" ")}>{over ? "초과" : "이내"}</span>
+            <div className="text-[11px] text-ink-mute">{shortDateTime(at)}</div>
           </>
         ) : (
           <span className="text-ink-mute">—</span>
@@ -73,18 +73,18 @@ export function Timeline72({ result }: { result: ReviewResult }) {
 
   return (
     <section>
-      <h3 className="text-sm font-semibold">72시간 타임라인</h3>
-      <div className="mb-2 text-xs text-ink-mute tnum">
+      <h3 className="text-sm font-bold">72시간 타임라인</h3>
+      <div className="mb-3 text-xs text-ink-mute tnum">
         기준점(최초 인지){" "}
         {t0 ? (
-          <span className="font-medium text-ink">{t0}</span>
+          <span className="font-semibold text-ink">{t0}</span>
         ) : ambiguous ? (
-          <span className="font-medium text-bad">미확정 — 탐지·확인 시각이 둘이라 추측하지 않음</span>
+          <span className="font-semibold text-bad">미확정 — 탐지·확인 시각이 둘이라 추측하지 않음</span>
         ) : (
-          <span className="font-medium text-bad">없음</span>
+          <span className="font-semibold text-bad">없음</span>
         )}
       </div>
-      <div className="space-y-2">
+      <div className="space-y-3">
         <Row
           label="고객 통지"
           at={timeline.notified_at}

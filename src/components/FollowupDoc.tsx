@@ -17,7 +17,7 @@ export function FollowupDoc({ result }: { result: ReviewResult }) {
 
   if (!doc) {
     return (
-      <div className="rounded-2xl border border-line bg-white p-5 text-sm text-ink-mute">
+      <div className="rounded-xl3 bg-white p-6 text-sm text-ink-mute shadow-card">
         후속 문서가 응답에 없습니다. 워크플로우 설정 #5 이상(후속 문서 노드가 document_lines 를 내는 버전)으로 실행했는지 확인하세요.
       </div>
     );
@@ -50,11 +50,11 @@ export function FollowupDoc({ result }: { result: ReviewResult }) {
   const mailto = `mailto:?subject=${encodeURIComponent(`[clip] ${doc.document_title}`)}&body=${encodeURIComponent(text)}`;
 
   return (
-    <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+    <div className="rounded-xl3 bg-white p-6 shadow-card sm:p-7">
       <div className="flex flex-wrap items-center gap-2">
         <div>
-          <div className="text-xs text-ink-mute">{DOC_KIND[judgment.decision] ?? "후속 문서"}</div>
-          <h3 className="text-base font-bold">{doc.document_title}</h3>
+          <div className="text-xs font-semibold uppercase tracking-[0.14em] text-ink-mute">후속 문서 · {DOC_KIND[judgment.decision] ?? "후속 문서"}</div>
+          <h3 className="text-lg font-bold tracking-tight">{doc.document_title}</h3>
         </div>
         <div className="ml-auto flex flex-wrap gap-1.5 text-xs">
           <Btn onClick={copy}>{copied ? "복사됨 ✓" : "복사"}</Btn>
@@ -67,7 +67,7 @@ export function FollowupDoc({ result }: { result: ReviewResult }) {
           </a>
         </div>
       </div>
-      <div className="mt-3 rounded-xl bg-paper p-4 text-sm leading-relaxed whitespace-pre-wrap font-[inherit]">
+      <div className="mt-4 rounded-2xl bg-paper p-5 text-sm leading-relaxed whitespace-pre-wrap font-[inherit]">
         {doc.document_lines.map((line, i) =>
           line.trim() === "" ? (
             <div key={i} className="h-3" />
@@ -86,7 +86,7 @@ export function FollowupDoc({ result }: { result: ReviewResult }) {
 }
 
 const btnClass =
-  "inline-flex items-center rounded-lg border border-line bg-white px-2.5 py-1.5 font-medium text-ink hover:bg-paper disabled:opacity-50";
+  "inline-flex items-center rounded-full bg-ink px-3.5 py-2 text-xs font-bold text-paper transition hover:bg-ink-2 disabled:opacity-50";
 
 function Btn({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) {
   return (

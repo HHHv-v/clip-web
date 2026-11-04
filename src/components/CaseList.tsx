@@ -4,10 +4,10 @@ import type { CaseRun, Decision } from "@/lib/types";
 import { formatHours, LIMIT_HOURS } from "@/lib/time";
 import { downloadText } from "@/lib/download";
 
-const BADGE: Record<Decision, string> = {
-  적정: "bg-lime text-ink",
-  보완필요: "bg-warn text-white",
-  검토필요: "bg-bad text-white",
+const BADGE: Record<Decision, { cls: string; label: string }> = {
+  적정: { cls: "bg-lime text-ink", label: "적합" },
+  보완필요: { cls: "bg-ink text-lime", label: "부적합" },
+  검토필요: { cls: "bg-warn text-white", label: "보류" },
 };
 
 function statusLabel(r: CaseRun) {
@@ -45,9 +45,9 @@ export function CaseList({
   };
 
   return (
-    <div className="rounded-2xl border border-line bg-white shadow-sm">
+    <div className="overflow-hidden rounded-xl3 bg-white shadow-card">
       <div className="flex items-center gap-2 border-b border-line px-4 py-3">
-        <h2 className="text-sm font-semibold">케이스 목록</h2>
+        <h2 className="text-sm font-bold">케이스 목록</h2>
         <span className="text-xs text-ink-mute">
           {runs.length}건 · 완료 {done.length}
         </span>
@@ -55,7 +55,7 @@ export function CaseList({
           type="button"
           onClick={exportJson}
           disabled={done.length === 0}
-          className="ml-auto rounded-lg border border-line px-2.5 py-1 text-xs font-medium hover:bg-paper disabled:opacity-40"
+          className="ml-auto rounded-full bg-ink px-3 py-1.5 text-[11px] font-bold text-paper hover:bg-ink-2 disabled:opacity-30"
         >
           결과 JSON 내보내기
         </button>
@@ -79,7 +79,7 @@ export function CaseList({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") onSelect(r.localId);
                   }}
-                  className={["flex cursor-pointer items-center gap-3 px-4 py-2.5 text-sm hover:bg-paper", selected ? "bg-paper" : ""].join(" ")}
+                  className={["flex cursor-pointer items-center gap-3 px-4 py-3 text-sm transition hover:bg-paper", selected ? "bg-lime-soft/60" : ""].join(" ")}
                 >
                   <span className="w-10 shrink-0 font-semibold tnum">{j?.case_id || "—"}</span>
                   <span className="min-w-0 flex-1">
@@ -101,7 +101,7 @@ export function CaseList({
                     )}
                   </span>
                   {j ? (
-                    <span className={["shrink-0 rounded-md px-2 py-0.5 text-xs font-bold", BADGE[j.decision] ?? BADGE.검토필요].join(" ")}>{j.decision}</span>
+                    <span className={["shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black", (BADGE[j.decision] ?? BADGE.검토필요).cls].join(" ")}>{(BADGE[j.decision] ?? BADGE.검토필요).label}</span>
                   ) : (
                     <span className={["shrink-0 text-xs", r.status === "failed" ? "text-bad" : "text-ink-mute clip-pulse"].join(" ")}>{statusLabel(r)}</span>
                   )}
