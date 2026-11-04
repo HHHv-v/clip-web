@@ -1,9 +1,11 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { UploadZone } from "@/components/UploadZone";
 import { StepProgress } from "@/components/StepProgress";
+import { VerdictCard } from "@/components/VerdictCard";
 import { DecisionCard } from "@/components/DecisionCard";
 import { FollowupDoc } from "@/components/FollowupDoc";
 import { CaseList } from "@/components/CaseList";
@@ -85,37 +87,64 @@ export default function Page() {
 
   const selected = runs.find((r) => r.localId === selectedId) ?? runs.find((r) => r.result) ?? runs[0];
   const busy = runs.some((r) => r.status === "uploading" || r.status === "queued" || r.status === "in_progress");
+  const done = runs.filter((r) => r.result).length;
 
   return (
     <>
-      <Header mock={mock} />
-      <main className="mx-auto w-full max-w-6xl flex-1 px-4 py-6">
-        {/* 문제 한 줄 */}
-        <section className="mb-5">
-          <h1 className="text-2xl font-extrabold tracking-tight">
-            유출을 알게 된 순간부터 <span className="bg-lime px-1">72시간</span>. 서류 3종을 사람 대신 1차 검수합니다.
-          </h1>
-          <p className="mt-1 text-sm text-ink-soft">
-            내부 사고 경위서 · 고객 통지문 · 개인정보위 신고서를 한 PDF로 올리면 기한(통지·신고 각 72시간), 신고 대상 여부, 통지문 필수 6항목,
-            서류 간 인원·항목 일치를 확인하고 <b>적정 / 보완필요 / 검토필요</b>로 판정합니다. 2026.9.11 시행 개정 개인정보보호법 기준.
-          </p>
-        </section>
+      {/* 히어로 */}
+      <section className="hero-bg text-paper">
+        <Header mock={mock} />
+        <div className="mx-auto grid w-full max-w-6xl items-center gap-8 px-5 pb-28 pt-12 sm:px-8 sm:pt-16 lg:grid-cols-[1.15fr_0.85fr] lg:pb-36">
+          <div className="clip-rise">
+            <div className="inline-flex items-center gap-2 rounded-full border border-paper/15 bg-paper/5 px-3 py-1 text-xs font-medium text-paper/80">
+              <span className="h-1.5 w-1.5 rounded-full bg-lime" />
+              2026.9.11 개정 개인정보보호법 기준
+            </div>
+            <h1 className="mt-5 break-keep text-[2.5rem] font-black leading-[1.08] tracking-tight sm:text-[3.6rem]">
+              유출 서류 3종,
+              <br />
+              <span className="text-lime">72시간</span> 안에 제대로 냈는지
+              <br />
+              30초 만에 검수.
+            </h1>
+            <p className="mt-5 max-w-xl break-keep text-base leading-relaxed text-paper/70 sm:text-lg">
+              내부 사고 경위서 · 고객 통지문 · 개인정보위 신고서를 올리면 기한, 신고 대상, 필수 항목, 서류 간 일치를 확인하고{" "}
+              <b className="text-paper">적합 / 부적합 / 판단 보류</b>로 알려 드립니다. 보완할 것은 바로 문장으로 나옵니다.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-2 text-sm">
+              {["통지·신고 각 72시간 계산", "신고 대상 3조건", "통지문 필수 6항목", "서류 간 인원·항목 대조", "후속 문서 자동 작성"].map((t) => (
+                <span key={t} className="rounded-full bg-paper/8 px-3 py-1.5 text-paper/85 ring-1 ring-paper/10">
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="relative mx-auto hidden w-full max-w-md lg:block">
+            <div className="absolute inset-0 -z-0 rounded-full bg-lime/25 blur-3xl" />
+            <Image src="/brand/logo-3d.png" alt="clip 로고" width={446} height={429} priority className="clip-float relative w-full drop-shadow-[0_30px_40px_rgba(0,0,0,0.45)]" />
+          </div>
+        </div>
+      </section>
 
-        {/* 1. 업로드 */}
-        <UploadZone onFiles={onFiles} busy={busy} />
+      <main className="mx-auto w-full max-w-6xl flex-1 px-5 pb-16 sm:px-8">
+        {/* 1. 업로드 — 히어로 위로 겹쳐 올림 */}
+        <div className="-mt-20 lg:-mt-24">
+          <UploadZone onFiles={onFiles} busy={busy} />
+        </div>
 
-        <div className="mt-6 grid gap-6 lg:grid-cols-[1fr_20rem]">
-          {/* 2·3. 판정 카드 + 후속 문서 */}
+        <div className="mt-8 grid gap-6 lg:grid-cols-[1fr_21rem]">
+          {/* 2·3·4. 판정 요약 → 상세 근거 → 후속 문서 */}
           <div className="min-w-0 space-y-6">
             {!selected ? (
               <EmptyState mock={mock} />
             ) : selected.result ? (
               <>
+                <VerdictCard result={selected.result} fileName={selected.fileName} />
                 <DecisionCard result={selected.result} fileName={selected.fileName} raw={selected.raw} />
                 <FollowupDoc result={selected.result} />
               </>
             ) : (
-              <div className="rounded-2xl border border-line bg-white p-5 shadow-sm">
+              <div className="rounded-xl3 bg-white p-6 shadow-card">
                 <div className="mb-3 flex items-center gap-2 text-sm">
                   <span className="font-semibold">{selected.fileName}</span>
                   {selected.status === "failed" ? (
@@ -129,31 +158,52 @@ export default function Page() {
             )}
           </div>
 
-          {/* 4. 케이스 목록 */}
-          <aside className="lg:sticky lg:top-20 lg:self-start">
+          {/* 5. 케이스 목록 */}
+          <aside className="lg:sticky lg:top-6 lg:self-start">
             <CaseList runs={runs} selectedId={selected?.localId} onSelect={setSelectedId} onRemove={remove} />
-            <p className="mt-3 px-1 text-[11px] leading-relaxed text-ink-mute">
-              처리 흐름: 읽기(OCR) → 분류·분할 → 서류별 추출 → 규칙 검증 → 판정 → 후속 문서. 판정은 Upstage Studio 워크플로우가 하고, 이 화면은
-              근거를 보여 주고 다음 일을 돕습니다.
+            <div className="mt-4 grid grid-cols-3 gap-2 text-center">
+              <Stat label="올린 건" value={runs.length} />
+              <Stat label="완료" value={done} />
+              <Stat label="적합" value={runs.filter((r) => r.result?.judgment.decision === "적정").length} accent />
+            </div>
+            <p className="mt-4 px-1 text-[11px] leading-relaxed text-ink-mute">
+              읽기(OCR) → 분류·분할 → 서류별 추출 → 규칙 검증 → 판정 → 후속 문서. 판정은 Upstage Studio 워크플로우가 하고, 이 화면은 근거를 보여 주고 다음 일을
+              돕습니다.
             </p>
           </aside>
         </div>
       </main>
-      <footer className="border-t border-line py-4 text-center text-xs text-ink-mute">clip · Upstage AI Agent Hackathon v.2 · 1차 검수 보조 도구</footer>
+
+      <footer className="border-t border-line py-6">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-5 text-xs text-ink-mute sm:px-8">
+          <Image src="/brand/logo-symbol-ink.png" alt="" width={166} height={175} className="h-5 w-auto opacity-70" />
+          <span>clip · Upstage AI Agent Hackathon v.2 · 1차 검수 보조 도구 — 최종 판단은 개인정보 보호책임자가 합니다</span>
+        </div>
+      </footer>
     </>
+  );
+}
+
+function Stat({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
+  return (
+    <div className={["rounded-2xl px-2 py-3", accent ? "bg-lime text-ink" : "bg-white shadow-card"].join(" ")}>
+      <div className="text-2xl font-black tnum leading-none">{value}</div>
+      <div className={["mt-1 text-[11px]", accent ? "text-ink/70" : "text-ink-mute"].join(" ")}>{label}</div>
+    </div>
   );
 }
 
 function EmptyState({ mock }: { mock: boolean }) {
   return (
-    <div className="rounded-2xl border border-dashed border-line bg-white/60 p-8 text-center text-sm text-ink-mute">
-      <div className="font-medium text-ink">서류를 올리면 여기에 판정 카드가 나타납니다.</div>
-      <div className="mt-1">
-        판정 배지 · 72시간 타임라인 · 통지문 필수 6항목 · 서류 간 대조표 · 판정 근거, 그리고 판정별 후속 문서(검수 확인서 / 보완 요청서 / 담당자 확인 요청서).
+    <div className="rounded-xl3 border border-dashed border-line bg-white/70 p-10 text-center">
+      <Image src="/brand/logo-symbol-ink.png" alt="" width={166} height={175} className="mx-auto h-12 w-auto opacity-30" />
+      <div className="mt-4 text-base font-bold">서류를 올리면 여기에 검수 결과가 나타납니다</div>
+      <div className="mx-auto mt-1 max-w-md text-sm text-ink-soft">
+        적합 / 부적합 / 판단 보류 판정, 기준 4가지 통과 여부, 보완해야 할 것, 72시간 타임라인, 서류 간 대조표, 그리고 판정별 후속 문서까지.
       </div>
       {mock && (
-        <div className="mt-3 text-xs text-warn">
-          샘플 모드: 파일 이름에 set01·set05·set06·set07·set10(또는 C01…)이 들어 있으면 그 케이스의 결과를 보여 줍니다. 실제 판정은 .env 에 UPSTAGE_API_KEY 를 넣으면 됩니다.
+        <div className="mx-auto mt-4 inline-block rounded-full bg-warn-bg px-3 py-1.5 text-xs text-warn">
+          샘플 모드 — 파일 이름에 set01·set05·set06·set07·set10 이 들어 있으면 그 케이스의 결과가 나옵니다
         </div>
       )}
     </div>

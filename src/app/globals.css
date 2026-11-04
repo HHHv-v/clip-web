@@ -1,14 +1,16 @@
 @import "tailwindcss";
 
-/* clip 브랜딩: 먹색 #212121 · 라임 #BFD74D · 종이색 #F8F8F8 */
+/* clip 브랜드: 먹색 #212121 · 라임 #BFD74D · 종이색 #F8F8F8 · 서체 비앤빛 라식체(로고) + Pretendard(본문) */
 @theme {
   --color-ink: #212121;
+  --color-ink-2: #2e2e2e;
   --color-ink-soft: #4b4b4b;
   --color-ink-mute: #8a8a8a;
   --color-lime: #bfd74d;
+  --color-lime-soft: #e9f1bf;
   --color-lime-deep: #8fae1b;
   --color-paper: #f8f8f8;
-  --color-line: #e4e4e4;
+  --color-line: #e6e6e6;
 
   --color-ok: #3f7d20;
   --color-ok-bg: #eef6d6;
@@ -21,6 +23,11 @@
     "Pretendard Variable", Pretendard, -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
     "Noto Sans KR", "Malgun Gothic", system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --radius-xl2: 1.25rem;
+  --radius-xl3: 1.75rem;
+  --shadow-card: 0 1px 2px rgb(33 33 33 / 0.04), 0 12px 32px -16px rgb(33 33 33 / 0.18);
+  --shadow-lift: 0 2px 6px rgb(33 33 33 / 0.06), 0 24px 48px -20px rgb(33 33 33 / 0.28);
 }
 
 html,
@@ -29,11 +36,39 @@ body {
   color: var(--color-ink);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  letter-spacing: -0.01em;
 }
 
-/* 숫자 폭을 고정해 타임라인·대조표가 흔들리지 않게 */
 .tnum {
   font-variant-numeric: tabular-nums;
+}
+
+/* 히어로 배경: 먹색 위에 라임 빛 두 덩어리 + 미세한 격자 */
+.hero-bg {
+  background-color: var(--color-ink);
+  background-image:
+    radial-gradient(60% 80% at 85% 50%, rgb(191 215 77 / 0.28), transparent 60%),
+    radial-gradient(40% 50% at 10% 110%, rgb(191 215 77 / 0.14), transparent 60%),
+    linear-gradient(rgb(255 255 255 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(255 255 255 / 0.035) 1px, transparent 1px);
+  background-size:
+    auto,
+    auto,
+    32px 32px,
+    32px 32px;
+}
+
+@keyframes clip-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-2deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(1deg);
+  }
+}
+.clip-float {
+  animation: clip-float 6s ease-in-out infinite;
 }
 
 @keyframes clip-pulse {
@@ -47,4 +82,26 @@ body {
 }
 .clip-pulse {
   animation: clip-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes clip-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.clip-rise {
+  animation: clip-rise 0.35s ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .clip-float,
+  .clip-rise,
+  .clip-pulse {
+    animation: none;
+  }
 }
