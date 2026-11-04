@@ -90,7 +90,7 @@ export function DecisionCard({ result, fileName, raw }: { result: ReviewResult; 
         <section>
           <h3 className="text-sm font-bold">고객 통지문 필수 6항목</h3>
           <div className="mb-3 text-xs text-ink-mute">
-            {notice.length > 1 ? `통지문 ${notice.length}부(가능성·확정) 합산` : "개인정보보호법 제34조 · 시행령 제40조"}
+            {notice.length > 1 ? `통지문 ${notice.length}부(가능성·확정) 합산` : "개인정보보호법 제34조 · 시행령 제39조"}
           </div>
           {notice.length === 0 ? (
             <div className="rounded-2xl bg-bad-bg px-4 py-3 text-sm font-semibold text-bad">통지문이 서류 묶음에 없습니다</div>
