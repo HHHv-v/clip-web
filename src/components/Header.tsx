@@ -5,7 +5,7 @@ export function Header({ mock }: { mock: boolean }) {
   return (
     <header className="mx-auto flex w-full max-w-6xl items-center gap-3 px-5 pt-5 sm:px-8">
       <Link href="/" className="flex items-center gap-2.5" aria-label="clip 홈">
-        <Image src="/brand/logo-symbol-white.png" alt="" width={123} height={128} className="h-8 w-auto" priority />
+        <Image src="/brand/logo-symbol-white.png" alt="" width={388} height={408} className="h-8 w-auto" priority />
         <span className="sr-only">clip</span>
       </Link>
       <span className="hidden text-xs text-paper/50 sm:inline">개인정보 유출 72시간 대응 서류 검수</span>
