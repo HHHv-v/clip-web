@@ -64,43 +64,43 @@ export function DecisionCard({ result, fileName, raw }: { result: ReviewResult; 
     <div className="rounded-xl3 bg-white p-6 shadow-card sm:p-7">
       {/* 헤더 */}
       <div className="flex flex-wrap items-center gap-3">
-        <h2 className="text-lg font-bold tracking-tight">상세 근거</h2>
-        <span className={["rounded-full px-2.5 py-1 text-xs font-bold", BADGE[judgment.decision] ?? BADGE.검토필요].join(" ")}>
+        <h2 className="text-xl font-bold tracking-tight">상세 근거</h2>
+        <span className={["rounded-full px-2.5 py-1 text-sm font-bold", BADGE[judgment.decision] ?? BADGE.검토필요].join(" ")}>
           워크플로우 판정 · {judgment.decision}
         </span>
         <span
           className={[
-            "rounded-full px-2.5 py-1 text-xs font-semibold",
+            "rounded-full px-2.5 py-1 text-sm font-semibold",
             judgment.report_required ? "bg-ink text-lime" : "bg-paper text-ink-soft ring-1 ring-line",
           ].join(" ")}
         >
           {judgment.report_required ? "개인정보위 신고 대상" : "신고 대상 아님"}
         </span>
-        <span className="ml-auto truncate text-xs text-ink-mute">{fileName}</span>
+        <span className="ml-auto truncate text-sm text-ink-mute">{fileName}</span>
       </div>
 
       {/* 신고 대상 근거 */}
       {extracts.incident && (
-        <div className="mt-4 flex flex-wrap gap-1.5 text-xs">
+        <div className="mt-4 flex flex-wrap gap-1.5 text-sm">
           <Chip on={(extracts.incident.leaked_count ?? 0) >= 1000} label={`유출 인원 ${fmtCount(extracts.incident.leaked_count)}`} hint="1천 명 이상" />
           <Chip on={!!extracts.incident.has_sensitive_or_unique_id} label="민감·고유식별정보" />
           <Chip on={!!extracts.incident.external_access} label="외부 불법 접근" />
         </div>
       )}
 
-      <div className="mt-6 grid gap-7 lg:grid-cols-2">
+      <div className="mt-7 space-y-9">
         <Timeline72 result={result} />
 
         {/* 통지문 필수 6항목 */}
         <section>
-          <h3 className="text-sm font-bold">고객 통지문 필수 6항목</h3>
-          <div className="mb-3 text-xs text-ink-mute">
+          <h3 className="text-lg font-bold">고객 통지문 필수 6항목</h3>
+          <div className="mb-3 text-sm text-ink-mute">
             {notice.length > 1 ? `통지문 ${notice.length}부(가능성·확정) 합산` : "개인정보보호법 제34조 · 시행령 제39조"}
           </div>
           {notice.length === 0 ? (
-            <div className="rounded-2xl bg-bad-bg px-4 py-3 text-sm font-semibold text-bad">통지문이 서류 묶음에 없습니다</div>
+            <div className="rounded-2xl bg-bad-bg px-4 py-3 text-base font-semibold text-bad">통지문이 서류 묶음에 없습니다</div>
           ) : (
-            <ul className="grid grid-cols-2 gap-1.5 text-sm">
+            <ul className="space-y-2 text-base">
               {CHECKS.map((c) => {
                 const v = checkValue(c.key);
                 const flagged = missing.has(c.label);
@@ -108,11 +108,11 @@ export function DecisionCard({ result, fileName, raw }: { result: ReviewResult; 
                 return (
                   <li
                     key={c.key}
-                    className={["flex items-center gap-2 rounded-xl px-3 py-2", bad ? "bg-bad-bg text-bad" : "bg-paper text-ink"].join(" ")}
+                    className={["flex items-center gap-3 rounded-xl px-4 py-3", bad ? "bg-bad-bg text-bad" : "bg-paper text-ink"].join(" ")}
                   >
                     <span
                       className={[
-                        "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-black",
+                        "inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-black",
                         bad ? "bg-bad text-white" : v === true ? "bg-lime text-ink" : "bg-line text-ink-mute",
                       ].join(" ")}
                     >
@@ -120,7 +120,7 @@ export function DecisionCard({ result, fileName, raw }: { result: ReviewResult; 
                     </span>
                     <span className="whitespace-nowrap">{c.label}</span>
                     {c.key === "has_legal_rights" && (
-                      <span className="ml-auto rounded bg-white/70 px-1 text-[10px] whitespace-nowrap text-ink-mute" title="2026.9.11 시행 개정 개인정보보호법에서 추가된 필수 항목">
+                      <span className="ml-auto rounded bg-white/70 px-1 text-[11px] whitespace-nowrap text-ink-mute" title="2026.9.11 시행 개정 개인정보보호법에서 추가된 필수 항목">
                         개정 추가
                       </span>
                     )}
@@ -134,11 +134,11 @@ export function DecisionCard({ result, fileName, raw }: { result: ReviewResult; 
 
       {/* 서류 간 대조표 */}
       <section className="mt-7">
-        <h3 className="mb-3 text-sm font-bold">서류 간 대조 (인원 · 항목 · 기준 시각)</h3>
+        <h3 className="mb-3 text-lg font-bold">서류 간 대조 (인원 · 항목 · 기준 시각)</h3>
         {hasExtracts ? (
           <div className="overflow-x-auto rounded-2xl ring-1 ring-line">
-            <table className="w-full text-sm">
-              <thead className="bg-paper text-xs text-ink-soft">
+            <table className="w-full text-base">
+              <thead className="bg-paper text-sm text-ink-soft">
                 <tr>
                   <th className="px-4 py-2.5 text-left font-semibold">항목</th>
                   <th className="px-4 py-2.5 text-left font-semibold">내부 사고 경위서</th>
@@ -166,22 +166,22 @@ export function DecisionCard({ result, fileName, raw }: { result: ReviewResult; 
                       ? extracts.incident.recognized_at ||
                         (extracts.incident.recognition_ambiguous ? "불명확" : "—")
                       : "없음"}
-                    <span className="ml-1 text-xs text-ink-mute">최초 인지</span>
+                    <span className="ml-1 text-sm text-ink-mute">최초 인지</span>
                   </td>
                   <td className="tnum">
                     {extracts.notices.map((n) => n.notified_at || "—").join(" / ") || "없음"}
-                    <span className="ml-1 text-xs text-ink-mute">통지</span>
+                    <span className="ml-1 text-sm text-ink-mute">통지</span>
                   </td>
                   <td className="tnum">
                     {extracts.breach ? extracts.breach.reported_at || "—" : "없음"}
-                    <span className="ml-1 text-xs text-ink-mute">신고</span>
+                    <span className="ml-1 text-sm text-ink-mute">신고</span>
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
         ) : (
-          <div className="rounded-2xl bg-paper px-4 py-3 text-sm text-ink-mute">
+          <div className="rounded-2xl bg-paper px-4 py-3 text-base text-ink-mute">
             단계별 추출값이 응답에 없어 대조표를 만들 수 없습니다. (Job 생성 시 include: [&quot;all&quot;] 인지 확인)
           </div>
         )}
@@ -189,13 +189,13 @@ export function DecisionCard({ result, fileName, raw }: { result: ReviewResult; 
 
       {/* 판정 근거 */}
       <section className="mt-7">
-        <h3 className="mb-2 text-sm font-bold">판정 근거 — 쉽게 풀어 보기</h3>
+        <h3 className="mb-3 text-lg font-bold">판정 근거 — 쉽게 풀어 보기</h3>
         <ul className="space-y-2 rounded-2xl bg-paper px-4 py-3">
           {explainLines(result).map((l) => {
             const t = EXPLAIN_TONE[l.tone];
             return (
-              <li key={l.title} className="flex gap-2.5 text-sm leading-relaxed">
-                <span className={["mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-black", t.dot].join(" ")}>{t.mark}</span>
+              <li key={l.title} className="flex gap-2.5 text-base leading-relaxed">
+                <span className={["mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-xs font-black", t.dot].join(" ")}>{t.mark}</span>
                 <span className="break-keep">
                   <b className="mr-1.5 font-semibold text-ink">{l.title}</b>
                   <span className="text-ink-soft">{l.text}</span>
@@ -204,23 +204,20 @@ export function DecisionCard({ result, fileName, raw }: { result: ReviewResult; 
             );
           })}
         </ul>
-        <details className="mt-2 text-sm">
-          <summary className="cursor-pointer text-xs text-ink-mute hover:text-ink">워크플로우가 남긴 원래 근거 보기</summary>
+        <details className="mt-2 text-base">
+          <summary className="cursor-pointer text-sm text-ink-mute hover:text-ink">워크플로우가 남긴 원래 근거 보기</summary>
           <p className="mt-2 rounded-2xl bg-paper px-4 py-3 leading-relaxed text-ink-soft break-keep">{plainReason(judgment.reason)}</p>
         </details>
         {judgment.missing_items.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">
             {judgment.missing_items.map((m) => (
-              <span key={m} className="rounded-full bg-bad-bg px-2.5 py-0.5 text-xs font-semibold text-bad">
+              <span key={m} className="rounded-full bg-bad-bg px-2.5 py-0.5 text-sm font-semibold text-bad">
                 누락: {m}
               </span>
             ))}
           </div>
         )}
-        <div className="mt-3 flex items-center gap-3 text-xs text-ink-mute">
-          <span>
-            결과 노드: {result.source === "followup" ? "후속 문서 노드 (판정 5키 복사본)" : result.source === "judgment" ? "검수_판정" : "알 수 없음"}
-          </span>
+        <div className="mt-3 flex items-center gap-3 text-sm text-ink-mute">
           {raw !== undefined && (
             <button type="button" className="underline hover:text-ink" onClick={() => setShowRaw((v) => !v)}>
               {showRaw ? "원문 JSON 닫기" : "원문 JSON 보기"}
@@ -228,7 +225,7 @@ export function DecisionCard({ result, fileName, raw }: { result: ReviewResult; 
           )}
         </div>
         {showRaw && raw !== undefined && (
-          <pre className="mt-2 max-h-72 overflow-auto rounded-2xl bg-ink p-4 text-[11px] leading-snug text-paper">{JSON.stringify(raw, null, 2)}</pre>
+          <pre className="mt-2 max-h-72 overflow-auto rounded-2xl bg-ink p-4 text-xs leading-snug text-paper">{JSON.stringify(raw, null, 2)}</pre>
         )}
       </section>
     </div>

@@ -47,21 +47,21 @@ export function CaseList({
   return (
     <div className="overflow-hidden rounded-xl3 bg-white shadow-card">
       <div className="flex items-center gap-2 border-b border-line px-4 py-3">
-        <h2 className="text-sm font-bold">케이스 목록</h2>
-        <span className="text-xs text-ink-mute">
+        <h2 className="text-base font-bold">케이스 목록</h2>
+        <span className="text-sm text-ink-mute">
           {runs.length}건 · 완료 {done.length}
         </span>
         <button
           type="button"
           onClick={exportJson}
           disabled={done.length === 0}
-          className="ml-auto rounded-full bg-ink px-3 py-1.5 text-[11px] font-bold text-paper hover:bg-ink-2 disabled:opacity-30"
+          className="ml-auto rounded-full bg-ink px-3 py-1.5 text-xs font-bold text-paper hover:bg-ink-2 disabled:opacity-30"
         >
           결과 JSON 내보내기
         </button>
       </div>
       {runs.length === 0 ? (
-        <div className="px-4 py-6 text-center text-sm text-ink-mute">아직 올린 서류가 없습니다.</div>
+        <div className="px-4 py-6 text-center text-base text-ink-mute">아직 올린 서류가 없습니다.</div>
       ) : (
         <ul className="divide-y divide-line">
           {runs.map((r) => {
@@ -79,16 +79,16 @@ export function CaseList({
                   onKeyDown={(e) => {
                     if (e.key === "Enter") onSelect(r.localId);
                   }}
-                  className={["flex cursor-pointer items-center gap-3 px-4 py-3 text-sm transition hover:bg-paper", selected ? "bg-lime-soft/60" : ""].join(" ")}
+                  className={["flex cursor-pointer items-center gap-3 px-4 py-3 text-base transition hover:bg-paper", selected ? "bg-lime-soft/60" : ""].join(" ")}
                 >
                   <span className="w-10 shrink-0 font-semibold tnum">{j?.case_id || "—"}</span>
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-ink-soft">
                       {r.result?.extracts.incident?.org_name || r.fileName}
-                      {r.mock && <span className="ml-1 text-[10px] text-warn">샘플</span>}
+                      {r.mock && <span className="ml-1 text-[11px] text-warn">샘플</span>}
                     </span>
                     {r.result && (
-                      <span className="block truncate text-[11px] tnum text-ink-mute">
+                      <span className="block truncate text-xs tnum text-ink-mute">
                         {hn !== undefined || hr !== undefined ? (
                           <>
                             통지 <b className={hn !== undefined && hn > LIMIT_HOURS ? "text-bad" : "text-ink"}>{formatHours(hn)}</b> · 신고{" "}
@@ -101,9 +101,9 @@ export function CaseList({
                     )}
                   </span>
                   {j ? (
-                    <span className={["shrink-0 rounded-full px-2.5 py-1 text-[11px] font-black", (BADGE[j.decision] ?? BADGE.검토필요).cls].join(" ")}>{(BADGE[j.decision] ?? BADGE.검토필요).label}</span>
+                    <span className={["shrink-0 rounded-full px-2.5 py-1 text-xs font-black", (BADGE[j.decision] ?? BADGE.검토필요).cls].join(" ")}>{(BADGE[j.decision] ?? BADGE.검토필요).label}</span>
                   ) : (
-                    <span className={["shrink-0 text-xs", r.status === "failed" ? "text-bad" : "text-ink-mute clip-pulse"].join(" ")}>{statusLabel(r)}</span>
+                    <span className={["shrink-0 text-sm", r.status === "failed" ? "text-bad" : "text-ink-mute clip-pulse"].join(" ")}>{statusLabel(r)}</span>
                   )}
                   <button
                     type="button"
@@ -117,7 +117,7 @@ export function CaseList({
                     ×
                   </button>
                 </div>
-                {r.error && <div className="px-4 pb-2 text-xs text-bad">{r.error}</div>}
+                {r.error && <div className="px-4 pb-2 text-sm text-bad">{r.error}</div>}
               </li>
             );
           })}

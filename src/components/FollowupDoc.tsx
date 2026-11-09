@@ -26,7 +26,7 @@ export function FollowupDoc({ result }: { result: ReviewResult }) {
 
   if (!doc) {
     return (
-      <div className="rounded-xl3 bg-white p-6 text-sm text-ink-mute shadow-card">
+      <div className="rounded-xl3 bg-white p-6 text-base text-ink-mute shadow-card">
         후속 문서가 응답에 없습니다. 워크플로우의 후속 문서 단계가 실행됐는지 확인하세요.
       </div>
     );
@@ -64,16 +64,16 @@ export function FollowupDoc({ result }: { result: ReviewResult }) {
       {/* 머리: 이게 무엇인지 */}
       <div className="flex flex-wrap items-start gap-3">
         <div className="min-w-0 flex-1">
-          <div className="text-xs font-semibold tracking-[0.14em] text-ink-mute">다음 단계 · 보낼 문서 초안</div>
+          <div className="text-sm font-semibold tracking-[0.14em] text-ink-mute">다음 단계 · 보낼 문서 초안</div>
           <h3 className="mt-0.5 text-lg font-bold tracking-tight">
             {sections.map((s) => s.name).join(" · ")} <span className="text-ink-mute">({sections.length}개 준비됨)</span>
           </h3>
-          <p className="mt-1 text-sm text-ink-soft break-keep">{INTRO[judgment.decision] ?? "판정 결과에 맞춰 워크플로우가 작성한 문서 초안입니다."}</p>
+          <p className="mt-1 text-base text-ink-soft break-keep">{INTRO[judgment.decision] ?? "판정 결과에 맞춰 워크플로우가 작성한 문서 초안입니다."}</p>
         </div>
         <button
           type="button"
           onClick={() => setOpen((v) => !v)}
-          className="rounded-full bg-ink px-4 py-2 text-xs font-bold text-paper hover:bg-ink-2"
+          className="rounded-full bg-ink px-4 py-2 text-sm font-bold text-paper hover:bg-ink-2"
           aria-expanded={open}
         >
           {open ? "접기" : "문서 펼쳐 보기"}
@@ -90,15 +90,15 @@ export function FollowupDoc({ result }: { result: ReviewResult }) {
                 type="button"
                 onClick={() => setTab(i)}
                 className={[
-                  "rounded-full px-3.5 py-1.5 text-sm font-semibold",
+                  "rounded-full px-3.5 py-1.5 text-base font-semibold",
                   i === tab ? "bg-lime text-ink" : "bg-paper text-ink-soft ring-1 ring-line hover:text-ink",
                 ].join(" ")}
               >
                 {s.name}
-                {s.audience && <span className="ml-1.5 text-[11px] font-normal opacity-70">{/고객/.test(s.audience) ? "고객용" : "내부용"}</span>}
+                {s.audience && <span className="ml-1.5 text-xs font-normal opacity-70">{/고객/.test(s.audience) ? "고객용" : "내부용"}</span>}
               </button>
             ))}
-            <div className="ml-auto flex flex-wrap gap-1.5 text-xs">
+            <div className="ml-auto flex flex-wrap gap-1.5 text-sm">
               <Btn onClick={copy}>{copied ? "복사됨 ✓" : "복사"}</Btn>
               <Btn onClick={() => downloadText(text, `${base}.txt`)}>TXT</Btn>
               <Btn onClick={toDocx} disabled={building}>
@@ -112,15 +112,15 @@ export function FollowupDoc({ result }: { result: ReviewResult }) {
 
           {/* 문서 본문 */}
           <article className="mt-4 rounded-2xl bg-paper p-5 sm:p-6">
-            {cur.audience && <div className="text-xs text-ink-mute">{cur.audience}</div>}
-            <h4 className="mt-1 text-base font-bold break-keep">{cur.title}</h4>
-            <div className="mt-4 space-y-2 text-sm leading-relaxed">
+            {cur.audience && <div className="text-sm text-ink-mute">{cur.audience}</div>}
+            <h4 className="mt-1 text-lg font-bold break-keep">{cur.title}</h4>
+            <div className="mt-4 space-y-2 text-base leading-relaxed">
               {cur.blocks.map((b, i) => (
                 <BlockView key={i} b={b} />
               ))}
             </div>
           </article>
-          <p className="mt-3 text-xs text-ink-mute">
+          <p className="mt-3 text-sm text-ink-mute">
             <mark className="rounded bg-lime px-1 font-semibold text-ink">추가</mark> 표시는 원래 서류에서 빠져 있어 새로 넣은 부분입니다. ※ 1차 검수 결과이며 최종 판단은 개인정보 보호책임자가
             합니다.
           </p>
@@ -182,7 +182,7 @@ function BlockView({ b }: { b: Block }) {
     case "table":
       return (
         <div className="overflow-x-auto rounded-xl bg-white ring-1 ring-line">
-          <table className="w-full text-[13px]">
+          <table className="w-full text-[15px]">
             <thead className="bg-paper text-ink-soft">
               <tr>
                 {b.header.map((h, i) => (
@@ -210,7 +210,7 @@ function BlockView({ b }: { b: Block }) {
 }
 
 const btnClass =
-  "inline-flex items-center rounded-full bg-ink px-3.5 py-2 text-xs font-bold text-paper transition hover:bg-ink-2 disabled:opacity-50";
+  "inline-flex items-center rounded-full bg-ink px-3.5 py-2 text-sm font-bold text-paper transition hover:bg-ink-2 disabled:opacity-50";
 
 function Btn({ children, onClick, disabled }: { children: React.ReactNode; onClick: () => void; disabled?: boolean }) {
   return (
