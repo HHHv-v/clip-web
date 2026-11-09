@@ -1,9 +1,10 @@
 import type { ReviewResult } from "./types";
 import { LIMIT_HOURS, formatHours, hasClock } from "./time";
+import { deadline72, koDateTime, pendingReason, plainReason } from "./explain";
 
 /**
  * 워크플로우 판정(적정/보완필요/검토필요)과 추출값을 읽어
- * "적합 / 부적합 / 판단 보류"와 기준별 통과 여부, 보완해야 할 일을 사람 말로 만든다.
+ * "적정 / 보완필요 / 검토필요"와 기준별 통과 여부, 보완해야 할 일을 사람 말로 만든다.
  * 판정 자체는 워크플로우가 했고, 여기서는 그 결과를 설명만 한다 (새로 판단하지 않는다).
  */
 
@@ -23,7 +24,7 @@ export interface ActionItem {
 }
 
 export interface Verdict {
-  label: "적합" | "부적합" | "판단 보류";
+  label: "적정" | "보완필요" | "검토필요";
   tone: Tone;
   headline: string;
   criteria: Criterion[];
@@ -80,9 +81,10 @@ export function buildVerdict(r: ReviewResult): Verdict {
       detail: "통지는 유출 인원이 1명이라도 의무입니다. 발송 일시·채널(이메일·문자·홈페이지)이 서류에 남아야 72시간을 셀 수 있습니다.",
     });
   } else if (!t0) {
-    criteria.push({ key: "notice", label: "통지 72시간", status: "hold", detail: "기준점(최초 인지)이 확정되지 않아 계산 보류" });
+    criteria.push({ key: "notice", label: "통지 72시간", status: "hold", detail: "최초 인지 일시가 정해지지 않아 72시간 계산 불가" });
   } else if (t.hoursToNotice === undefined) {
     criteria.push({ key: "notice", label: "통지 72시간", status: "hold", detail: noClockDetail(t0, t.notified_at, "통지") });
+    actions.push(clockAction("notice", r));
   } else if (t.hoursToNotice > LIMIT_HOURS) {
     const over = formatHours(Math.round((t.hoursToNotice - LIMIT_HOURS) * 10) / 10);
     criteria.push({ key: "notice", label: "통지 72시간", status: "fail", detail: `${formatHours(t.hoursToNotice)} — ${over} 초과` });
@@ -116,9 +118,10 @@ export function buildVerdict(r: ReviewResult): Verdict {
       });
     }
   } else if (!t0) {
-    criteria.push({ key: "report", label: "신고 72시간", status: "hold", detail: "기준점(최초 인지)이 확정되지 않아 계산 보류" });
+    criteria.push({ key: "report", label: "신고 72시간", status: "hold", detail: "최초 인지 일시가 정해지지 않아 72시간 계산 불가" });
   } else if (t.hoursToReport === undefined) {
     criteria.push({ key: "report", label: "신고 72시간", status: "hold", detail: noClockDetail(t0, t.reported_at, "신고") });
+    actions.push(clockAction("report", r));
   } else if (t.hoursToReport > LIMIT_HOURS) {
     const over = formatHours(Math.round((t.hoursToReport - LIMIT_HOURS) * 10) / 10);
     criteria.push({ key: "report", label: "신고 72시간", status: "fail", detail: `${formatHours(t.hoursToReport)} — ${over} 초과` });
@@ -186,7 +189,7 @@ export function buildVerdict(r: ReviewResult): Verdict {
     criteria.push({ key: "consistency", label: "서류 일치·기준점", status: "hold", detail: "유출 항목 목록이 서류마다 다름" });
     actions.push({ title: "유출 항목이 서류마다 다릅니다. 실제 유출 항목을 확정하고 서류를 맞추세요." });
   } else {
-    criteria.push({ key: "consistency", label: "서류 일치·기준점", status: "pass", detail: `최초 인지 ${t0 ?? "—"} · 인원·항목 일치` });
+    criteria.push({ key: "consistency", label: "서류 일치·기준점", status: "pass", detail: `최초 인지 ${koDateTime(t0)} · 인원·항목 일치` });
   }
 
   // 판정 라벨은 워크플로우 결정값을 따른다
@@ -194,37 +197,55 @@ export function buildVerdict(r: ReviewResult): Verdict {
   let tone: Tone;
   let headline: string;
   if (j.decision === "적정") {
-    label = "적합";
+    label = "적정";
     tone = "ok";
     headline = "기한·필수 항목·서류 일치를 모두 충족했습니다. 검수 확인서를 보관하세요.";
   } else if (j.decision === "보완필요") {
-    label = "부적합";
+    label = "보완필요";
     tone = "bad";
     headline = `보완할 것 ${actions.length || 1}가지. 아래 항목을 고친 뒤 다시 올리면 재검수합니다.`;
   } else {
-    label = "판단 보류";
+    label = "검토필요";
     tone = "hold";
     headline = "서류만으로는 확정할 수 없어 담당자 확인이 필요합니다. 검수기는 추측하지 않았습니다.";
   }
 
   // 워크플로우는 문제라고 했는데 위 규칙으로 잡히지 않은 경우: 판정 근거를 그대로 안내
   if (j.decision !== "적정" && actions.length === 0) {
-    actions.push({ title: "판정 근거를 확인하세요.", detail: j.reason });
+    actions.push({ title: "워크플로우가 짚은 문제를 확인하세요.", detail: plainReason(j.reason) });
   }
 
   return { label, tone, headline, criteria, actions };
 }
 
 function noClockDetail(t0: string, at: string | undefined, what: string): string {
-  if (!hasClock(t0)) return "기준점(최초 인지)에 시각이 없어 계산 보류";
-  if (at && !hasClock(at)) return `${what} 일시에 시각이 없어 계산 보류`;
-  return `${what} 시각을 읽지 못해 계산 보류`;
+  if (!hasClock(t0)) return "최초 인지 일시에 시각(시·분)이 없어 72시간 계산 불가";
+  if (at && !hasClock(at)) return `${what} 일시가 ${koDateTime(at)}로 날짜만 있어 72시간 계산 불가`;
+  return `${what} 시각을 읽지 못해 72시간 계산 불가`;
+}
+
+/** 날짜만 있고 시각이 없어 기한을 셀 수 없을 때 할 일 */
+function clockAction(kind: "notice" | "report", r: ReviewResult): ActionItem {
+  const t0 = r.timeline.recognized_at;
+  if (!hasClock(t0)) {
+    return {
+      title: "경위서의 '최초 인지 일시'에 시각(시·분)까지 적어 주세요.",
+      detail: pendingReason(kind, r),
+    };
+  }
+  const doc = kind === "notice" ? "통지문" : "신고서";
+  const what = kind === "notice" ? "고객 통지" : "개인정보위 신고";
+  const dl = deadline72(t0);
+  return {
+    title: `${doc}에 ${what} 시각(시·분)까지 적어 주세요.`,
+    detail: `지금은 날짜(${koDateTime(kind === "notice" ? r.timeline.notified_at : r.timeline.reported_at)})만 있어 72시간 안에 했는지 확정할 수 없습니다.${dl ? ` 마감은 ${dl}이니, 발송·접수 기록에서 정확한 시각을 확인해 적어 주세요.` : ""}`,
+  };
 }
 
 /** 신고서 칸 누락 시 함께 보여 줄 기한 정보 */
 function reportTiming(r: ReviewResult): string {
   const { recognized_at: t0, hoursToReport: h } = r.timeline;
-  if (!t0 || h === undefined) return "기한 계산 보류";
+  if (!t0 || h === undefined) return "기한 계산 불가";
   return h > LIMIT_HOURS ? `${formatHours(h)} (72시간 초과)` : `${formatHours(h)} (72시간 이내)`;
 }
 

@@ -3,6 +3,14 @@
 import { useState } from "react";
 import type { Decision, NoticeExtract, ReviewResult } from "@/lib/types";
 import { Timeline72 } from "./Timeline72";
+import { explainLines, plainReason, type ExplainTone } from "@/lib/explain";
+
+const EXPLAIN_TONE: Record<ExplainTone, { dot: string; mark: string }> = {
+  ok: { dot: "bg-lime text-ink", mark: "✓" },
+  bad: { dot: "bg-bad text-white", mark: "✗" },
+  hold: { dot: "bg-warn text-white", mark: "!" },
+  info: { dot: "bg-line text-ink-soft", mark: "i" },
+};
 
 const BADGE: Record<Decision, string> = {
   적정: "bg-lime text-ink",
@@ -181,8 +189,25 @@ export function DecisionCard({ result, fileName, raw }: { result: ReviewResult; 
 
       {/* 판정 근거 */}
       <section className="mt-7">
-        <h3 className="mb-2 text-sm font-bold">워크플로우 판정 근거</h3>
-        <p className="rounded-2xl bg-paper px-4 py-3 text-sm leading-relaxed text-ink-soft">{judgment.reason}</p>
+        <h3 className="mb-2 text-sm font-bold">판정 근거 — 쉽게 풀어 보기</h3>
+        <ul className="space-y-2 rounded-2xl bg-paper px-4 py-3">
+          {explainLines(result).map((l) => {
+            const t = EXPLAIN_TONE[l.tone];
+            return (
+              <li key={l.title} className="flex gap-2.5 text-sm leading-relaxed">
+                <span className={["mt-0.5 inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[11px] font-black", t.dot].join(" ")}>{t.mark}</span>
+                <span className="break-keep">
+                  <b className="mr-1.5 font-semibold text-ink">{l.title}</b>
+                  <span className="text-ink-soft">{l.text}</span>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+        <details className="mt-2 text-sm">
+          <summary className="cursor-pointer text-xs text-ink-mute hover:text-ink">워크플로우가 남긴 원래 근거 보기</summary>
+          <p className="mt-2 rounded-2xl bg-paper px-4 py-3 leading-relaxed text-ink-soft break-keep">{plainReason(judgment.reason)}</p>
+        </details>
         {judgment.missing_items.length > 0 && (
           <div className="mt-2 flex flex-wrap gap-1.5">
             {judgment.missing_items.map((m) => (

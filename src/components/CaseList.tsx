@@ -5,9 +5,9 @@ import { formatHours, LIMIT_HOURS } from "@/lib/time";
 import { downloadText } from "@/lib/download";
 
 const BADGE: Record<Decision, { cls: string; label: string }> = {
-  적정: { cls: "bg-lime text-ink", label: "적합" },
-  보완필요: { cls: "bg-ink text-lime", label: "부적합" },
-  검토필요: { cls: "bg-warn text-white", label: "보류" },
+  적정: { cls: "bg-lime text-ink", label: "적정" },
+  보완필요: { cls: "bg-ink text-lime", label: "보완필요" },
+  검토필요: { cls: "bg-warn text-white", label: "검토필요" },
 };
 
 function statusLabel(r: CaseRun) {

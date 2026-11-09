@@ -111,7 +111,7 @@ export default function Page() {
               <span className="text-lime">72시간</span> 검수를 1분 안에.
             </h1>
             <p className="mt-4 max-w-xl break-keep text-base leading-relaxed text-paper/70 sm:text-lg">
-              경위서·통지문·신고서를 올리면 <b className="text-paper">적합 / 부적합 / 판단 보류</b>로 바로 알려 드립니다.
+              경위서·통지문·신고서를 올리면 <b className="text-paper">적정 / 보완필요 / 검토필요</b>로 바로 알려 드립니다.
             </p>
             <div className="mt-6 flex flex-wrap gap-2 text-sm">
               {["72시간 기한", "신고 대상", "통지문 6항목", "신고서 필수 칸", "서류 간 대조"].map((t) => (
@@ -182,7 +182,7 @@ export default function Page() {
             <div className="grid grid-cols-3 gap-2 text-center">
               <Stat label="올린 건" value={runs.length} />
               <Stat label="완료" value={done} />
-              <Stat label="적합" value={runs.filter((r) => r.result?.judgment.decision === "적정").length} accent />
+              <Stat label="적정" value={runs.filter((r) => r.result?.judgment.decision === "적정").length} accent />
             </div>
           </section>
         )}
@@ -217,7 +217,7 @@ function EmptyState({ mock }: { mock: boolean }) {
       <Image src="/brand/logo-symbol-ink.png" alt="" width={388} height={408} className="mx-auto h-12 w-auto opacity-30" />
       <div className="mt-4 text-base font-bold">서류를 올리면 여기에 검수 결과가 나타납니다</div>
       <div className="mx-auto mt-1 max-w-md text-sm text-ink-soft">
-        적합 / 부적합 / 판단 보류 판정, 기준 4가지 통과 여부, 보완해야 할 것, 72시간 타임라인, 서류 간 대조표, 그리고 판정별 후속 문서까지.
+        적정 / 보완필요 / 검토필요 판정, 기준 4가지 통과 여부, 보완해야 할 것, 72시간 타임라인, 서류 간 대조표, 그리고 판정별 후속 문서까지.
       </div>
       {mock && (
         <div className="mx-auto mt-4 inline-block rounded-full bg-warn-bg px-3 py-1.5 text-xs text-warn">
