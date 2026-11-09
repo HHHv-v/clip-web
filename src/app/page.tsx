@@ -51,7 +51,11 @@ export default function Page() {
           update(localId, { status: "failed", error: data.error ?? "워크플로우 실행 실패", raw: data.raw, finishedAt: Date.now() });
           return;
         }
-        update(localId, { status: data.status });
+        // 판정이 먼저 끝났으면 결과를 미리 보여 주고, 후속 문서가 나올 때까지 계속 기다린다
+        if (data.result) {
+          update(localId, { status: data.status, result: data.result });
+          setSelectedId((prev) => prev ?? localId);
+        } else update(localId, { status: data.status });
       }
       throw new Error("10분 안에 결과가 오지 않았습니다");
     },
@@ -142,7 +146,7 @@ export default function Page() {
             <>
               <VerdictCard result={selected.result} fileName={selected.fileName} />
               <DecisionCard result={selected.result} fileName={selected.fileName} raw={selected.raw} />
-              <FollowupDoc result={selected.result} />
+              <FollowupDoc result={selected.result} pending={selected.status !== "completed"} />
             </>
           ) : (
             <div className="rounded-xl3 bg-white p-6 shadow-card">

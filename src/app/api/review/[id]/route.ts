@@ -29,9 +29,12 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     const resp = await getJob(id);
     const status = statusOf(resp);
     if (status !== "completed") {
+      // 진행 중이라도 앞 단계(판정)가 끝났으면 먼저 보여 준다. 후속 문서는 마지막 단계라 오래 걸린다
+      const partial = status !== "failed" ? normalize(undefined, resp) : undefined;
       const body: JobStatusResponse = {
         id,
         status,
+        result: partial,
         error: status === "failed" ? `워크플로우 실행 실패 (status: ${String(resp.status)})` : undefined,
       };
       return NextResponse.json(body);
