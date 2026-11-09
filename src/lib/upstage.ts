@@ -4,18 +4,25 @@ import "server-only";
  * Upstage Studio Agent API (OpenAI 호환) — 서버에서만 호출한다.
  * API 키는 환경변수 UPSTAGE_API_KEY 로만 읽고, 코드·브라우저에 절대 넣지 않는다.
  *
+ * 모든 요청에 x-project-id 헤더를 붙인다 (없으면 파일이 Project 밖에 저장돼 'No access to file' 403).
+ *
  * 흐름: files(업로드) → responses(Job 생성, include: all) → responses/{id} 폴링 → output_text(JSON) 파싱
  */
 const BASE = process.env.UPSTAGE_BASE_URL ?? "https://api.upstage.ai/v2";
 export const AGENT_ID = process.env.UPSTAGE_AGENT_ID ?? "agt_dYaUgJFxXSDceXaB8VcYH2";
-export const CONFIG_ID = process.env.UPSTAGE_CONFIG_ID ?? "22";
+export const CONFIG_ID = process.env.UPSTAGE_CONFIG_ID ?? "24";
+/** 에이전트가 속한 Project. 업로드·Job 생성·조회 모두 이 헤더가 있어야 같은 Project 안에서 파일을 쓸 수 있다 */
+export const PROJECT_ID = process.env.UPSTAGE_PROJECT_ID ?? "proj_9RWKnzDBjCs8B52ovKjPBQ";
 
 export function hasApiKey(): boolean {
   return !!process.env.UPSTAGE_API_KEY && process.env.MOCK_MODE !== "1";
 }
 
 function authHeaders(): HeadersInit {
-  return { Authorization: `Bearer ${process.env.UPSTAGE_API_KEY ?? ""}` };
+  return {
+    Authorization: `Bearer ${process.env.UPSTAGE_API_KEY ?? ""}`,
+    ...(PROJECT_ID ? { "x-project-id": PROJECT_ID } : {}),
+  };
 }
 
 async function fail(prefix: string, r: Response): Promise<never> {
