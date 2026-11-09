@@ -8,7 +8,7 @@ import "server-only";
  */
 const BASE = process.env.UPSTAGE_BASE_URL ?? "https://api.upstage.ai/v2";
 export const AGENT_ID = process.env.UPSTAGE_AGENT_ID ?? "agt_dYaUgJFxXSDceXaB8VcYH2";
-export const CONFIG_ID = process.env.UPSTAGE_CONFIG_ID ?? "6";
+export const CONFIG_ID = process.env.UPSTAGE_CONFIG_ID ?? "22";
 
 export function hasApiKey(): boolean {
   return !!process.env.UPSTAGE_API_KEY && process.env.MOCK_MODE !== "1";

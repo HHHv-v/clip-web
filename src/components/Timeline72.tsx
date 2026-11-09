@@ -1,5 +1,5 @@
 import type { ReviewResult } from "@/lib/types";
-import { LIMIT_HOURS, formatHours, shortDateTime } from "@/lib/time";
+import { LIMIT_HOURS, formatHours, hasClock, shortDateTime } from "@/lib/time";
 
 function Row({
   label,
@@ -70,6 +70,14 @@ export function Timeline72({ result }: { result: ReviewResult }) {
 
   const hasNotice = extracts.notices.length > 0 || !!timeline.notified_at;
   const hasBreach = !!extracts.breach || !!timeline.reported_at;
+  const t0Clock = hasClock(t0);
+
+  /** 기준점이 있는데 계산이 안 될 때: 기준점 또는 통지·신고 일시에 시각이 없는 경우를 구분해 보여 준다 */
+  const pendingText = (what: "통지" | "신고", at?: string) => {
+    if (!t0) return `${what} ${shortDateTime(at)} · 기준점 없어 계산 보류`;
+    if (!t0Clock || (at && !hasClock(at))) return `${what} ${shortDateTime(at)} · 시각이 없어 계산 보류`;
+    return "—";
+  };
 
   return (
     <section>
@@ -77,9 +85,12 @@ export function Timeline72({ result }: { result: ReviewResult }) {
       <div className="mb-3 text-xs text-ink-mute tnum">
         기준점(최초 인지){" "}
         {t0 ? (
-          <span className="font-semibold text-ink">{t0}</span>
+          <span className="font-semibold text-ink">
+            {t0}
+            {!t0Clock && <span className="ml-1 text-bad">(시각 없음)</span>}
+          </span>
         ) : ambiguous ? (
-          <span className="font-semibold text-bad">미확정 — 탐지·확인 시각이 둘이라 추측하지 않음</span>
+          <span className="font-semibold text-bad">미확정 — 최초 인지 시각이 불명확해 추측하지 않음</span>
         ) : (
           <span className="font-semibold text-bad">없음</span>
         )}
@@ -90,7 +101,7 @@ export function Timeline72({ result }: { result: ReviewResult }) {
           at={timeline.notified_at}
           hours={t0 ? timeline.hoursToNotice : undefined}
           scaleMax={scaleMax}
-          missingText={!hasNotice ? "통지문 없음" : !t0 ? `통지 ${shortDateTime(timeline.notified_at)} · 기준점 없어 계산 보류` : "—"}
+          missingText={!hasNotice ? "통지문 없음" : pendingText("통지", timeline.notified_at)}
           missingTone={!hasNotice ? "bad" : "mute"}
         />
         <Row
@@ -103,9 +114,7 @@ export function Timeline72({ result }: { result: ReviewResult }) {
               ? judgment.report_required
                 ? "신고서 없음 (신고 대상)"
                 : "신고 대상 아님"
-              : !t0
-                ? `신고 ${shortDateTime(timeline.reported_at)} · 기준점 없어 계산 보류`
-                : "—"
+              : pendingText("신고", timeline.reported_at)
           }
           missingTone={!hasBreach && judgment.report_required ? "bad" : "mute"}
         />

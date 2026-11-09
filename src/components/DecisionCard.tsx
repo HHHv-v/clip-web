@@ -77,9 +77,6 @@ export function DecisionCard({ result, fileName, raw }: { result: ReviewResult; 
           <Chip on={(extracts.incident.leaked_count ?? 0) >= 1000} label={`유출 인원 ${fmtCount(extracts.incident.leaked_count)}`} hint="1천 명 이상" />
           <Chip on={!!extracts.incident.has_sensitive_or_unique_id} label="민감·고유식별정보" />
           <Chip on={!!extracts.incident.external_access} label="외부 불법 접근" />
-          {extracts.incident.recognition_route && (
-            <span className="rounded-full bg-paper px-2.5 py-1 text-ink-mute ring-1 ring-line">인지 경로: {extracts.incident.recognition_route}</span>
-          )}
         </div>
       )}
 
@@ -159,9 +156,7 @@ export function DecisionCard({ result, fileName, raw }: { result: ReviewResult; 
                   <td className="tnum">
                     {extracts.incident
                       ? extracts.incident.recognized_at ||
-                        (extracts.incident.recognition_ambiguous
-                          ? `탐지 ${extracts.incident.detected_at || "—"} / 확인 ${extracts.incident.confirmed_at || "—"}`
-                          : "—")
+                        (extracts.incident.recognition_ambiguous ? "불명확" : "—")
                       : "없음"}
                     <span className="ml-1 text-xs text-ink-mute">최초 인지</span>
                   </td>

@@ -105,14 +105,15 @@ export default function Page() {
               <br />
               <span className="text-lime">72시간</span> 안에 제대로 냈는지
               <br />
-              30초 만에 검수.
+              1분 안에 1차 검수.
             </h1>
             <p className="mt-5 max-w-xl break-keep text-base leading-relaxed text-paper/70 sm:text-lg">
-              내부 사고 경위서 · 고객 통지문 · 개인정보위 신고서를 올리면 기한, 신고 대상, 필수 항목, 서류 간 일치를 확인하고{" "}
-              <b className="text-paper">적합 / 부적합 / 판단 보류</b>로 알려 드립니다. 보완할 것은 바로 문장으로 나옵니다.
+              유출 사고를 낸 기관의 개인정보 담당자가 통지문·신고서를 내보내기 전에 쓰는 1차 점검 도구입니다. 내부 사고 경위서 · 고객
+              통지문 · 개인정보위 신고서를 올리면 기한, 신고 대상, 필수 항목, 서류 간 일치를 확인하고{" "}
+              <b className="text-paper">적합 / 부적합 / 판단 보류</b>로 알려 드립니다. 보완할 것은 바로 문장으로 나옵니다. 애매한 것은 추측하지 않고 담당자 확인으로 넘깁니다.
             </p>
             <div className="mt-7 flex flex-wrap gap-2 text-sm">
-              {["통지·신고 각 72시간 계산", "신고 대상 3조건", "통지문 필수 6항목", "서류 간 인원·항목 대조", "후속 문서 자동 작성"].map((t) => (
+              {["통지·신고 각 72시간 계산", "신고 대상 3조건", "통지문 필수 6항목", "신고서 필수 칸", "서류 간 인원·항목 대조", "후속 문서 자동 작성"].map((t) => (
                 <span key={t} className="rounded-full bg-paper/8 px-3 py-1.5 text-paper/85 ring-1 ring-paper/10">
                   {t}
                 </span>

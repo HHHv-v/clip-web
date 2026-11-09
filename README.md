@@ -51,7 +51,7 @@ npm run dev                     # http://localhost:3000
 |---|---|---|
 | `UPSTAGE_API_KEY` | Upstage API 키. **코드·커밋·대화에 절대 넣지 않는다** | (없으면 샘플 모드) |
 | `UPSTAGE_AGENT_ID` | Studio 워크플로우(에이전트) ID | `agt_dYaUgJFxXSDceXaB8VcYH2` |
-| `UPSTAGE_CONFIG_ID` | 제출한 워크플로우 설정 버전 | `6` |
+| `UPSTAGE_CONFIG_ID` | 제출한 워크플로우 설정 버전 | `22` |
 | `MOCK_MODE` | `1`이면 키가 있어도 샘플 결과만 사용 | 비움 |
 
 - **샘플 모드**: 파일 이름에 `set01·set05·set06·set07·set10`(또는 `C01…`)이 들어 있으면 해당 케이스의 결과를 보여 줍니다. 값은 팀 데이터셋을 설정 #5 워크플로우로 실제 돌린 결과를 바탕으로 했습니다.
@@ -60,7 +60,7 @@ npm run dev                     # http://localhost:3000
 ## Upstage API 호출 흐름 (`src/lib/upstage.ts`)
 
 1. `POST /v2/files` (multipart, `purpose=user_data`) → `file_id`
-2. `POST /v2/responses` `{ model: <agent id>, input: [{ role:"user", content:[{ type:"input_file", file_id }] }], include:["all"], config_id:"6" }` → `{ id, status }`
+2. `POST /v2/responses` `{ model: <agent id>, input: [{ role:"user", content:[{ type:"input_file", file_id }] }], include:["all"], config_id:"22" }` → `{ id, status }`
 3. `GET /v2/responses/{id}?include[]=all` 을 2.5초 간격으로 폴링 → `status: completed`
 4. `output_text`(없으면 `output[].content[].text`)를 JSON으로 파싱 → `{ case_id, decision, report_required, missing_items, reason, document_title, document_lines }`
 

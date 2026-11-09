@@ -1,5 +1,5 @@
 import type { ReviewResult } from "./types";
-import { LIMIT_HOURS, formatHours } from "./time";
+import { LIMIT_HOURS, formatHours, hasClock } from "./time";
 
 /**
  * 워크플로우 판정(적정/보완필요/검토필요)과 추출값을 읽어
@@ -40,6 +40,19 @@ const NOTICE_FLAG: Record<string, keyof NonNullable<ReviewResult["extracts"]["no
   "법적 권리 안내": "has_legal_rights",
 };
 
+/** 신고서 필수 칸 (워크플로우 #22: 비어 있으면 보완필요, missing_items는 비우고 reason에만 적는다) */
+function breachLacking(b: ReviewResult["extracts"]["breach"]): string[] {
+  if (!b) return [];
+  const lacking: string[] = [];
+  if (!b.leaked_items?.length) lacking.push("유출 항목");
+  if (b.has_timeline === false) lacking.push("유출 시점과 경위");
+  if (b.has_self_protection === false) lacking.push("피해 최소화 방법");
+  if (b.has_response === false) lacking.push("대응조치");
+  if (b.has_contact === false) lacking.push("담당부서 연락처");
+  if (!b.cpo_name?.trim()) lacking.push("개인정보 보호책임자");
+  return lacking;
+}
+
 const fmtCount = (n?: number) => (n === undefined || n === 0 ? "없음" : `${n.toLocaleString("ko-KR")}명`);
 
 function sameItems(a?: string[], b?: string[]) {
@@ -55,6 +68,7 @@ export function buildVerdict(r: ReviewResult): Verdict {
   const hasBreach = !!ex.breach || !!t.reported_at;
   const t0 = t.recognized_at;
   const ambiguous = !!ex.incident?.recognition_ambiguous || (!!ex.incident && !ex.incident.recognized_at);
+  const breachLack = j.report_required ? breachLacking(ex.breach) : [];
   const criteria: Criterion[] = [];
   const actions: ActionItem[] = [];
 
@@ -67,7 +81,9 @@ export function buildVerdict(r: ReviewResult): Verdict {
     });
   } else if (!t0) {
     criteria.push({ key: "notice", label: "통지 72시간", status: "hold", detail: "기준점(최초 인지)이 확정되지 않아 계산 보류" });
-  } else if (t.hoursToNotice !== undefined && t.hoursToNotice > LIMIT_HOURS) {
+  } else if (t.hoursToNotice === undefined) {
+    criteria.push({ key: "notice", label: "통지 72시간", status: "hold", detail: noClockDetail(t0, t.notified_at, "통지") });
+  } else if (t.hoursToNotice > LIMIT_HOURS) {
     const over = formatHours(Math.round((t.hoursToNotice - LIMIT_HOURS) * 10) / 10);
     criteria.push({ key: "notice", label: "통지 72시간", status: "fail", detail: `${formatHours(t.hoursToNotice)} — ${over} 초과` });
     actions.push({
@@ -87,9 +103,23 @@ export function buildVerdict(r: ReviewResult): Verdict {
       title: "개인정보보호위원회에 유출 신고서를 제출하고 접수증을 묶음에 넣으세요.",
       detail: reportWhy(r) + " 인지 후 72시간 안에 신고해야 하며, 늦으면 지연 사유를 함께 적습니다.",
     });
+  } else if (breachLack.length) {
+    criteria.push({ key: "report", label: "신고 72시간", status: "fail", detail: `${reportTiming(r)} · 신고서 칸 누락: ${breachLack.join(", ")}` });
+    actions.push({
+      title: `신고서에 빠진 칸(${breachLack.join(", ")})을 채워 개인정보위에 보완(정정) 신고하세요.`,
+      detail: "신고서는 유출 항목, 유출 시점과 경위, 피해 최소화 방법, 대응조치, 담당부서 연락처, 개인정보 보호책임자가 모두 적혀 있어야 합니다.",
+    });
+    if (t0 && t.hoursToReport !== undefined && t.hoursToReport > LIMIT_HOURS) {
+      actions.push({
+        title: `개인정보위 신고가 인지 후 ${formatHours(t.hoursToReport)}에 이뤄져 72시간을 넘겼습니다.`,
+        detail: "지연 사유를 신고서 또는 경위서에 기재하고, 사유가 없으면 소명 문서를 준비하세요.",
+      });
+    }
   } else if (!t0) {
     criteria.push({ key: "report", label: "신고 72시간", status: "hold", detail: "기준점(최초 인지)이 확정되지 않아 계산 보류" });
-  } else if (t.hoursToReport !== undefined && t.hoursToReport > LIMIT_HOURS) {
+  } else if (t.hoursToReport === undefined) {
+    criteria.push({ key: "report", label: "신고 72시간", status: "hold", detail: noClockDetail(t0, t.reported_at, "신고") });
+  } else if (t.hoursToReport > LIMIT_HOURS) {
     const over = formatHours(Math.round((t.hoursToReport - LIMIT_HOURS) * 10) / 10);
     criteria.push({ key: "report", label: "신고 72시간", status: "fail", detail: `${formatHours(t.hoursToReport)} — ${over} 초과` });
     actions.push({
@@ -136,12 +166,10 @@ export function buildVerdict(r: ReviewResult): Verdict {
     criteria.push({ key: "consistency", label: "서류 일치·기준점", status: ex.incident ? "hold" : "fail", detail: "내부 사고 경위서가 없어 기준점과 대조 불가" });
     actions.push({ title: "내부 사고 경위서를 작성해 묶음에 넣으세요.", detail: "'최초 인지 일시', 유출 인원, 유출 항목, 인지 경로가 꼭 들어가야 합니다. 72시간의 기준점이 여기서 나옵니다." });
   } else if (ambiguous) {
-    const d = ex.incident.detected_at || "—";
-    const c = ex.incident.confirmed_at || "—";
-    criteria.push({ key: "consistency", label: "서류 일치·기준점", status: "hold", detail: "'최초 인지 일시'가 명시되지 않음 (탐지·확인 시각만 있음)" });
+    criteria.push({ key: "consistency", label: "서류 일치·기준점", status: "hold", detail: "'최초 인지 일시'가 명시되지 않았거나 하나로 정해지지 않음" });
     actions.push({
       title: "경위서에 '최초 인지 일시'를 하나로 확정해 기재한 뒤 재검수하세요.",
-      detail: `탐지 ${d}과 확인 ${c} 중 어느 시각을 인지 시점으로 볼지 담당자가 정해야 합니다. 검수기는 추측하지 않았습니다.`,
+      detail: "'최초 인지 일시'가 명시되지 않았거나 하나로 정해지지 않아, 어느 시각을 인지 시점으로 볼지 담당자가 정해야 합니다. 검수기는 추측하지 않았습니다.",
     });
   } else if (countMismatch) {
     criteria.push({
@@ -185,6 +213,19 @@ export function buildVerdict(r: ReviewResult): Verdict {
   }
 
   return { label, tone, headline, criteria, actions };
+}
+
+function noClockDetail(t0: string, at: string | undefined, what: string): string {
+  if (!hasClock(t0)) return "기준점(최초 인지)에 시각이 없어 계산 보류";
+  if (at && !hasClock(at)) return `${what} 일시에 시각이 없어 계산 보류`;
+  return `${what} 시각을 읽지 못해 계산 보류`;
+}
+
+/** 신고서 칸 누락 시 함께 보여 줄 기한 정보 */
+function reportTiming(r: ReviewResult): string {
+  const { recognized_at: t0, hoursToReport: h } = r.timeline;
+  if (!t0 || h === undefined) return "기한 계산 보류";
+  return h > LIMIT_HOURS ? `${formatHours(h)} (72시간 초과)` : `${formatHours(h)} (72시간 이내)`;
 }
 
 function reportWhy(r: ReviewResult): string {

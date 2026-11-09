@@ -1,11 +1,19 @@
-/** 'YYYY-MM-DD HH:MM' (또는 'YYYY-MM-DDTHH:MM', 'YYYY-MM-DD') → 분 단위 정수. 못 읽으면 undefined */
+const DATE_TIME_RE = /^(\d{4})-(\d{2})-(\d{2})[ T](\d{1,2}):(\d{2})/;
+
+/** 날짜뿐 아니라 시각(HH:MM)까지 적혀 있는지. 'YYYY-MM-DD'만 있으면 false */
+export function hasClock(value?: string | null): boolean {
+  return !!value && DATE_TIME_RE.test(value.trim());
+}
+
+/**
+ * 'YYYY-MM-DD HH:MM' (또는 'YYYY-MM-DDTHH:MM') → 분 단위 정수.
+ * 시각 없이 날짜만 있으면 00:00으로 가정하지 않고 undefined (계산 보류)
+ */
 export function toMinutes(value?: string | null): number | undefined {
   if (!value) return undefined;
-  const m = value
-    .trim()
-    .match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}):(\d{2}))?/);
+  const m = value.trim().match(DATE_TIME_RE);
   if (!m) return undefined;
-  const [, y, mo, d, h = "0", mi = "0"] = m;
+  const [, y, mo, d, h, mi] = m;
   // 시간대와 무관하게 '적힌 시각' 그대로 계산한다 (UTC로 고정)
   const ms = Date.UTC(+y, +mo - 1, +d, +h, +mi);
   if (Number.isNaN(ms)) return undefined;
@@ -31,12 +39,12 @@ export function formatHours(h?: number): string {
   return `${sign}${whole}시간 ${minutes}분`;
 }
 
-/** '2026-10-20 09:00' → '10/20 09:00' */
+/** '2026-10-20 09:00' → '10/20 09:00', '2026-10-20' → '10/20 (시각 없음)' */
 export function shortDateTime(value?: string): string {
   if (!value) return "—";
-  const m = value.match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}:\d{2}))?/);
+  const m = value.trim().match(/^(\d{4})-(\d{2})-(\d{2})(?:[ T](\d{1,2}:\d{2}))?/);
   if (!m) return value;
-  return `${+m[2]}/${+m[3]}${m[4] ? ` ${m[4]}` : ""}`;
+  return `${+m[2]}/${+m[3]} ${m[4] ?? "(시각 없음)"}`;
 }
 
 export const LIMIT_HOURS = 72;
