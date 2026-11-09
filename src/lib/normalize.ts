@@ -20,8 +20,21 @@ export function cleanText(s: string): string {
     .trim();
 }
 
-/** 문자열이 JSON이면 파싱. 앞뒤에 설명이 붙어 있으면 첫 '{'부터 마지막 '}'까지 다시 시도 */
+/**
+ * 문자열이 JSON이면 파싱. 두 번 감싼 JSON 문자열('"{\\"a\\":1}"', 설정 #24의 Instruct 노드)도 한 번 더 푼다.
+ */
 export function tryParseJson(s: string): unknown {
+  let v = parseOnce(s);
+  for (let i = 0; i < 3 && typeof v === "string" && /^\s*[{[]/.test(v); i++) {
+    const next = parseOnce(v);
+    if (next === undefined) break;
+    v = next;
+  }
+  return v;
+}
+
+/** 한 번 파싱. 앞뒤에 설명이 붙어 있으면 첫 '{'부터 마지막 '}'까지 다시 시도 */
+function parseOnce(s: string): unknown {
   const t = cleanText(s);
   if (!t) return undefined;
   try {
@@ -78,12 +91,19 @@ function walk(node: unknown, found: Found, seen: Set<string>, depth = 0): void {
       found.judgments.push(node);
     }
     if ("recognized_at" in node || "recognition_ambiguous" in node) found.incidents.push(node);
-    if ("reported_at" in node && "report_target" in node) found.breaches.push(node);
+    // 신고서: #22부터 report_target이 빠져서 신고서 고유 칸(cpo_name 등)으로도 알아본다
+    if ("reported_at" in node && !("notified_at" in node) && ("report_target" in node || "cpo_name" in node || "leaked_count" in node)) {
+      found.breaches.push(node);
+    }
     if ("notified_at" in node && ("has_legal_rights" in node || "notice_channel" in node)) {
       found.notices.push(node);
     }
   }
-  for (const v of Object.values(node)) walk(v, found, seen, depth + 1);
+  for (const [k, v] of Object.entries(node)) {
+    // additional_values 는 같은 칸 이름에 신뢰도·좌표를 담은 부가 정보라 추출값으로 잡지 않는다
+    if (k === "additional_values") continue;
+    walk(v, found, seen, depth + 1);
+  }
 }
 
 const str = (v: unknown): string | undefined =>
@@ -95,8 +115,15 @@ const num = (v: unknown): number | undefined => {
   if (typeof v === "string" && v.trim() !== "" && !Number.isNaN(Number(v))) return Number(v);
   return undefined;
 };
-const strArr = (v: unknown): string[] | undefined =>
-  Array.isArray(v) ? v.map((x) => String(x)) : undefined;
+/** 배열 또는 쉼표로 이은 문자열('이름, 아이디') → 문자열 배열 */
+const strArr = (v: unknown): string[] | undefined => {
+  if (Array.isArray(v)) return v.map((x) => String(x));
+  if (typeof v === "string") {
+    const parts = v.split(/[,，、]/).map((x) => x.trim()).filter(Boolean);
+    return parts;
+  }
+  return undefined;
+};
 
 function toJudgment(o: Obj): Judgment {
   return {

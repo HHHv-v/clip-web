@@ -10,6 +10,7 @@ import { DecisionCard } from "@/components/DecisionCard";
 import { FollowupDoc } from "@/components/FollowupDoc";
 import { CaseList } from "@/components/CaseList";
 import type { CaseRun, CreateJobResponse, JobStatusResponse } from "@/lib/types";
+import { downloadText } from "@/lib/download";
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 const POLL_MS_REAL = 2500;
@@ -45,7 +46,11 @@ export default function Page() {
           setSelectedId(localId);
           return;
         }
-        if (data.status === "failed") throw new Error(data.error ?? "워크플로우 실행 실패");
+        if (data.status === "failed") {
+          // 원문(raw)은 남겨 둔다 — 결과 형식이 바뀌었을 때 원인을 볼 수 있게
+          update(localId, { status: "failed", error: data.error ?? "워크플로우 실행 실패", raw: data.raw, finishedAt: Date.now() });
+          return;
+        }
         update(localId, { status: data.status });
       }
       throw new Error("10분 안에 결과가 오지 않았습니다");
@@ -149,7 +154,23 @@ export default function Page() {
                   <span className="text-ink-mute clip-pulse">검수 중…</span>
                 )}
               </div>
-              <StepProgress status={selected.status} startedAt={selected.startedAt} expectedMs={selected.mock ? 6500 : 75000} />
+              {selected.status !== "failed" && (
+                <StepProgress status={selected.status} startedAt={selected.startedAt} expectedMs={selected.mock ? 6500 : 75000} />
+              )}
+              {selected.status === "failed" && selected.raw !== undefined && (
+                <div className="mt-2 space-y-2">
+                  <button
+                    type="button"
+                    className="rounded-full bg-ink px-3 py-1.5 text-xs font-bold text-paper hover:bg-ink-2"
+                    onClick={() => downloadText(JSON.stringify(selected.raw, null, 2), "clip_raw_response.json", "application/json;charset=utf-8")}
+                  >
+                    원문 JSON 내려받기
+                  </button>
+                  <pre className="max-h-72 overflow-auto rounded-2xl bg-ink p-4 text-[11px] leading-snug text-paper">
+                    {JSON.stringify(selected.raw, null, 2)}
+                  </pre>
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -50,4 +50,28 @@ assert.deepEqual(timesFromReason("인지 시각 T0는 2026-10-12 14:30, 통지 �
   recognized_at: "2026-10-12 14:30", notified_at: "2026-10-14 10:00", reported_at: "2026-10-13 18:00",
 });
 assert.deepEqual(tryParseJson("설명: {\"a\":1} 끝"), { a: 1 });
+// 5) 설정 #24 모양 — 판정이 두 번 감싼 JSON 문자열, leaked_items 가 쉼표 문자열, 신고서에 report_target 없음
+const msg = (model: string, text: string) => ({ type: "message", model, content: [{ type: "output_text", text }] });
+const judged = { case_id: "NAM-15", decision: "적정", report_required: true, missing_items: [], reason: "ok", document_title: "검수 확인서", document_lines: ["사고 개요"] };
+const raw24 = {
+  status: "completed",
+  output: [
+    msg("Information Extract - 경위서_추출", JSON.stringify({ recognized_at: "2026-10-27 14:00", recognition_ambiguous: false, leaked_count: 2600, leaked_items: "이름, 아이디, 주문 내역" })),
+    msg("Information Extract - 통지문_추출", JSON.stringify({ notified_at: "2026-10-28 15:00", notice_channel: "이메일", leaked_count: 2600, leaked_items: "이름, 아이디, 주문 내역", has_legal_rights: true })),
+    msg("Information Extract - 신고서_추출", JSON.stringify({ reported_at: "2026-10-28 10:00", leaked_count: 2600, leaked_items: "이름, 아이디, 주문 내역", has_contact: true, cpo_name: "강도율" })),
+    msg("Validate - 경위서_기준값검증", JSON.stringify("green")),
+    { type: "message", content: [{ type: "output_text", text: "x", additional_values: JSON.stringify({ notified_at: { _value: "2026-10-28 15:00" }, notice_channel: { _value: "이메일" } }) }] },
+    msg("Instruct - 검수확인서_작성", JSON.stringify(JSON.stringify(judged))),
+  ],
+};
+const r5 = normalize(undefined, raw24);
+assert.ok(r5);
+assert.equal(r5.judgment.decision, "적정");
+assert.equal(r5.document?.document_title, "검수 확인서");
+assert.deepEqual(r5.extracts.incident?.leaked_items, ["이름", "아이디", "주문 내역"]);
+assert.equal(r5.extracts.breach?.cpo_name, "강도율");
+assert.equal(r5.extracts.notices.length, 1); // additional_values 는 무시
+assert.equal(r5.timeline.hoursToNotice, 25);
+assert.equal(r5.timeline.hoursToReport, 20);
+
 console.log("normalize 테스트 통과 ✓");
