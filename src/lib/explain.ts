@@ -145,9 +145,15 @@ const KEY_NAMES: [RegExp, string][] = [
 ];
 
 /** 워크플로우 원문 근거에서 칸 이름·T0 같은 기호·계산식을 걷어내 읽기 쉽게 */
-export function plainReason(reason: string): string {
-  let s = reason;
+/** recognized_at 같은 칸 이름을 한국어로 */
+export function koKeyNames(text: string): string {
+  let s = text;
   for (const [re, ko] of KEY_NAMES) s = s.replace(re, ko);
+  return s;
+}
+
+export function plainReason(reason: string): string {
+  let s = koKeyNames(reason);
   s = s
     .replace(/\s*\bT[0-2]\b\s*(?=[은는이가을를의])/g, "")
     // '11/1−10/30=2일, 2×24−6=42시간' 같은 계산식은 결과만 남긴다

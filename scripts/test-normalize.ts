@@ -2,6 +2,7 @@
 import assert from "node:assert/strict";
 import { normalize, timesFromReason, tryParseJson } from "../src/lib/normalize";
 import { hoursBetween } from "../src/lib/time";
+import { splitSections } from "../src/lib/followup";
 
 // 1) 설정 #5 — 후속 문서 노드가 낸 JSON (output_text)
 const followup = JSON.stringify({
@@ -73,5 +74,24 @@ assert.equal(r5.extracts.breach?.cpo_name, "강도율");
 assert.equal(r5.extracts.notices.length, 1); // additional_values 는 무시
 assert.equal(r5.timeline.hoursToNotice, 25);
 assert.equal(r5.timeline.hoursToReport, 20);
+
+// 6) 후속 문서 — [문서 n] 으로 나누고, 표·소제목·목록을 구분하고, true 는 '예'로
+const secs = splitSections(
+  {
+    document_title: "제목: 보완 요청",
+    document_lines: [
+      "[문서 1] 보완 요청서 (담당 부서에 보내는 내부 문서)", "제목: 보완 요청", "1. 검수 판정", "- 신고 대상 여부: true",
+      "구분 | 기준 시각 | 실제 시각", "고객 통지 | 10-26 11:00 | 10-27 17:00",
+      "[문서 2] 수정 통지문 초안 (고객에게 다시 보낼 안내문)", "3. 고객님이 피해를 줄이기 위해 하실 수 있는 조치", "[추가] 이름",
+    ],
+  },
+  "보완 요청서",
+);
+assert.equal(secs.length, 2);
+assert.equal(secs[0].title, "보완 요청");
+assert.deepEqual(secs[0].blocks.map((b) => b.type), ["heading", "bullets", "table"]);
+assert.ok(JSON.stringify(secs[0].blocks).includes("신고 대상 여부: 예"));
+assert.equal(secs[1].audience, "고객에게 다시 보낼 안내문");
+assert.equal(secs[1].blocks[0].type, "heading");
 
 console.log("normalize 테스트 통과 ✓");
